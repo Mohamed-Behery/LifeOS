@@ -7,6 +7,7 @@ import Sidebar from "./components/Sidebar";
 import Home from "./pages/Home";
 import Notes from "./pages/Notes";
 import { useEffect, useState } from "react";
+import Tasks from "./pages/Tasks";
 
 const AppContainer = styled.div`
   display: flex;
@@ -47,6 +48,7 @@ function App() {
             <Routes>
               <Route path="/" element={<Home />} />
               <Route path="/notes" element={<Notes />} />
+              <Route path="/tasks" element={<Tasks />} />
             </Routes>
           </Content>
         </AppContainer>

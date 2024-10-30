@@ -1,6 +1,6 @@
 import ReusableTable from "./../components/ReusableTable";
 
-const CashRegisters = () => {
+const Notes = () => {
   const apiUrl = "notes";
   const title = "إدارة ملاحظاتك";
   const columns = [
@@ -11,4 +11,4 @@ const CashRegisters = () => {
   return <ReusableTable apiUrl={apiUrl} columns={columns} title={title} />;
 };
 
-export default CashRegisters;
+export default Notes;
