@@ -12,22 +12,21 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 
 const Container = styled.div`
-  width: ${(props) => (props.isSidebarOpen ? "300px" : "80px")};
+  width: ${(props) => (props.open ? "300px" : "80px")};
   height: 100vh;
   background-color: ${({ theme }) => theme.bg};
   padding: 20px;
   box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
   display: flex;
   flex-direction: column;
-  align-items: ${(props) => (props.isSidebarOpen ? "flex-start" : "center")};
+  align-items: ${(props) => (props.open ? "flex-start" : "center")};
   overflow-y: auto;
   transition: width 0.3s ease;
 `;
 
 const LogoContainer = styled.div`
   display: flex;
-  justify-content: ${(props) =>
-    props.isSidebarOpen ? "flex-start" : "center"};
+  justify-content: ${(props) => (props.open ? "flex-start" : "center")};
   align-items: center;
   gap: 16px;
   width: 100%;
@@ -46,7 +45,7 @@ const Logo = styled.h1`
   font-size: 32px;
   text-align: center;
   color: ${({ theme }) => theme.text};
-  display: ${(props) => (props.isSidebarOpen ? "block" : "none")};
+  display: ${(props) => (props.open ? "block" : "none")};
   width: 80%;
 `;
 
@@ -66,8 +65,7 @@ const SidebarItem = styled.li`
   transition: all 0.3s ease;
   display: flex;
   align-items: center;
-  justify-content: ${(props) =>
-    props.isSidebarOpen ? "flex-start" : "center"};
+  justify-content: ${(props) => (props.open ? "flex-start" : "center")};
 
   a {
     color: ${({ theme }) => theme.text};
@@ -78,7 +76,7 @@ const SidebarItem = styled.li`
   }
 
   svg {
-    margin-left: ${(props) => (props.isSidebarOpen ? "10px" : "0")};
+    margin-left: ${(props) => (props.open ? "8px" : "0")};
   }
 `;
 
@@ -93,33 +91,33 @@ const Sidebar = ({ darkMode, toggleDarkMode }) => {
     setSidebarOpen(!isSidebarOpen);
   };
   return (
-    <Container isSidebarOpen={isSidebarOpen}>
+    <Container open={isSidebarOpen}>
       <LogoContainer>
         <ToggleButton onClick={toggleSidebar}>
           <FontAwesomeIcon icon={faBars} />
         </ToggleButton>
 
-        <Logo isSidebarOpen={isSidebarOpen}>LifeOS</Logo>
+        <Logo open={isSidebarOpen}>LifeOS</Logo>
       </LogoContainer>
       <SidebarList>
-        <SidebarItem isSidebarOpen={isSidebarOpen}>
+        <SidebarItem open={isSidebarOpen}>
           <Link to="/">
             <FontAwesomeIcon icon={faHome} /> {isSidebarOpen && "الرئيسية"}
           </Link>
         </SidebarItem>
-        <SidebarItem isSidebarOpen={isSidebarOpen}>
+        <SidebarItem open={isSidebarOpen}>
           <Link to="/notes">
             <FontAwesomeIcon icon={faNoteSticky} />{" "}
             {isSidebarOpen && "الملاحظات"}
           </Link>
         </SidebarItem>
-        <SidebarItem isSidebarOpen={isSidebarOpen}>
+        <SidebarItem open={isSidebarOpen}>
           <Link to="/tasks">
             <FontAwesomeIcon icon={faTasks} /> {isSidebarOpen && "المهام"}
           </Link>
         </SidebarItem>
         <hr />
-        <DarkModeToggle onClick={toggleDarkMode} isSidebarOpen={isSidebarOpen}>
+        <DarkModeToggle onClick={toggleDarkMode} open={isSidebarOpen}>
           {darkMode ? (
             <FontAwesomeIcon icon={faSun} />
           ) : (

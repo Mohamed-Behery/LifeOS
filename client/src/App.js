@@ -5,16 +5,19 @@ import { lightTheme, darkTheme } from "./utils/Theme";
 import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
 import Sidebar from "./components/Sidebar";
 import Home from "./pages/Home";
+import Notes from "./pages/Notes";
 import { useEffect, useState } from "react";
 
 const AppContainer = styled.div`
   display: flex;
   height: 100vh;
   background-color: ${({ theme }) => theme.bg};
+  color: ${({ theme }) => theme.text};
 `;
 
 const Content = styled.div`
   flex: 1;
+  padding: 24px 8px;
 `;
 
 function App() {
@@ -43,6 +46,7 @@ function App() {
           <Content>
             <Routes>
               <Route path="/" element={<Home />} />
+              <Route path="/notes" element={<Notes />} />
             </Routes>
           </Content>
         </AppContainer>
