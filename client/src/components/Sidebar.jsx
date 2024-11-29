@@ -12,7 +12,7 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 
 const Container = styled.div`
-  width: ${(props) => (props.open ? "300px" : "80px")};
+  width: ${(props) => (props.open ? "300px" : "60px")};
   height: 100vh;
   background-color: ${({ theme }) => theme.bg};
   padding: 20px;
@@ -22,6 +22,12 @@ const Container = styled.div`
   align-items: ${(props) => (props.open ? "flex-start" : "center")};
   overflow-y: auto;
   transition: width 0.3s ease;
+
+  @media (max-width: 768px) {
+    position: fixed;
+    z-index: 1000;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+  }
 `;
 
 const LogoContainer = styled.div`

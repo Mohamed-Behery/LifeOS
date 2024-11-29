@@ -2,7 +2,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { Link } from "react-router-dom";
 import styled from "styled-components";
 
-const Container = styled.div`
+const Container = styled(Link)`
   background-color: ${({ theme }) => theme.neutral};
   border-radius: 24px;
   padding: 24px;
@@ -11,9 +11,7 @@ const Container = styled.div`
   height: 150px;
   text-align: center;
   border: 1px solid ${({ theme }) => theme.border};
-`;
 
-const SectionLink = styled(Link)`
   & > * {
     color: ${({ theme }) => theme.text};
   }
@@ -36,11 +34,9 @@ const SectionLink = styled(Link)`
 
 function Card({ title, link, icon }) {
   return (
-    <Container>
-      <SectionLink to={link}>
-        <FontAwesomeIcon icon={icon} />
-        <span>{title}</span>
-      </SectionLink>
+    <Container to={link}>
+      <FontAwesomeIcon icon={icon} />
+      <span>{title}</span>
     </Container>
   );
 }

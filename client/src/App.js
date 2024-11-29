@@ -11,7 +11,7 @@ import Tasks from "./pages/Tasks";
 
 const AppContainer = styled.div`
   display: flex;
-  height: 100vh;
+  min-height: 100vh;
   background-color: ${({ theme }) => theme.bg};
   color: ${({ theme }) => theme.text};
 `;
@@ -19,6 +19,10 @@ const AppContainer = styled.div`
 const Content = styled.div`
   flex: 1;
   padding: 24px 8px;
+
+  @media screen and (max-width: 768px) {
+    margin-right: 60px;
+  }
 `;
 
 function App() {

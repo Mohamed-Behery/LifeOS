@@ -7,11 +7,12 @@ import {
   faEdit,
   faPlus,
   faTrash,
-  faChevronUp,
-  faChevronDown,
   faFileExcel,
-  faSort,
+  faFilePdf,
 } from "@fortawesome/free-solid-svg-icons";
+import { arabicFont } from "../utils/arabicFont";
+import jsPDF from "jspdf";
+import "jspdf-autotable";
 
 const Container = styled.div`
   h2 {
@@ -19,39 +20,55 @@ const Container = styled.div`
   }
 `;
 
-const Table = styled.table`
-  width: 100%;
-  border-collapse: collapse;
-  margin-top: 8px;
+const CardContainer = styled.div`
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 16px;
+  margin-top: 16px;
+`;
 
-  th,
-  td {
-    padding: 8px;
-    border: 1px solid ${({ theme }) => theme.border};
-    text-align: center;
-    font-size: 16px;
-  }
+const Card = styled.div`
+  background-color: ${({ theme }) => theme.bg};
+  color: ${({ theme }) => theme.text};
+  border: 1px solid ${({ theme }) => theme.border};
+  border-radius: 8px;
+  padding: 16px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+`;
 
-  th {
-    background-color: ${({ theme }) => theme.primary};
-    color: ${({ theme }) => theme.neutral};
-    font-weight: bold;
+const CardHeader = styled.div`
+  font-size: 18px;
+  font-weight: bold;
+  margin-bottom: 8px;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+`;
 
-    svg {
-      margin-right: 8px;
-      position: relative;
-      top: 2px;
-      font-size: 16px;
-    }
-  }
-
-  td {
-    color: ${({ theme }) => theme.text};
+const CardContent = styled.div`
+  font-size: 14px;
+  margin-bottom: 16px;
+  p {
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
   }
 `;
 
-const TableRow = styled.tr`
-  color: ${({ theme }) => theme.text};
+const CardActions = styled.div`
+  display: flex;
+  justify-content: space-between;
+
+  button {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 4px;
+
+    &:hover {
+      opacity: 0.7;
+    }
+  }
 `;
 
 const Overlay = styled.div`
@@ -84,20 +101,38 @@ const FormContainer = styled.form`
 `;
 
 const FormGroup = styled.div`
-  margin-bottom: 15px;
+  margin-bottom: 16px;
   label {
     display: block;
-    margin-bottom: 5px;
+    margin-bottom: 4px;
   }
-  input {
+  input,
+  select {
     width: 100%;
     padding: 8px;
     border-radius: 8px;
-    border: 1px solid ${({ theme }) => theme.border};
+    border: none;
+    background-color: transparent;
+    color: ${({ theme }) => theme.text};
+
+    &:focus {
+      outline: none;
+    }
+
+    option {
+      color: #000;
+    }
   }
 
-  input:focus {
+  input:focus,
+  select:focus {
     outline: none;
+  }
+
+  input[type="checkbox"] {
+    width: 24px;
+    height: 24px;
+    cursor: pointer;
   }
 `;
 
@@ -129,7 +164,7 @@ const CancelButton = styled.button`
 `;
 
 const AddButton = styled.button`
-  margin: 16px 0;
+  margin: 16px 0 16px 16px;
   padding: 8px 16px;
   background-color: ${({ theme }) => theme.primary};
   color: ${({ theme }) => theme.neutral};
@@ -148,7 +183,7 @@ const EditButton = styled.button`
   background: none;
   border: none;
   cursor: pointer;
-  padding: 5px;
+  padding: 4px;
   color: #0061ab;
 `;
 
@@ -156,7 +191,7 @@ const DeleteButton = styled.button`
   background: none;
   border: none;
   cursor: pointer;
-  padding: 5px;
+  padding: 4px;
   color: #dc143c;
 `;
 
@@ -166,15 +201,34 @@ const SearchInput = styled.input`
   margin-bottom: 16px;
   border-radius: 8px;
   border: 1px solid ${({ theme }) => theme.border};
+  background: transparent;
+  color: ${({ theme }) => theme.text};
+`;
+
+const SortCombo = styled.select`
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px;
+  color: ${({ theme }) => theme.text};
+
+  &:focus {
+    outline: none;
+  }
+
+  option {
+    color: #000;
+  }
 `;
 const ExportButton = styled.button`
-  margin: 0 16px;
+  margin-left: 16px;
   padding: 8px 16px;
   background-color: #2196f3;
   color: white;
   border: none;
   border-radius: 4px;
   cursor: pointer;
+  font-size: 16px;
 
   &:hover {
     background-color: #1976d2;
@@ -193,7 +247,7 @@ const ReusableTable = ({ apiUrl, columns, title }) => {
   const [editing, setEditing] = useState(false);
   const [formVisible, setFormVisible] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
-  const [sortDirection, setSortDirection] = useState({});
+  const [sortOrder, setSortOrder] = useState("desc");
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -266,29 +320,26 @@ const ReusableTable = ({ apiUrl, columns, title }) => {
     setSearchQuery(e.target.value);
   };
 
-  const handleSort = (field) => {
-    const currentDirection = sortDirection[field];
-    setSortDirection({ [field]: !currentDirection });
-
-    const sortedData = [...data].sort((a, b) => {
-      if (a[field] < b[field]) return currentDirection ? -1 : 1;
-      if (a[field] > b[field]) return currentDirection ? 1 : -1;
-      return 0;
-    });
-
-    setData(sortedData);
+  const handleSortOrderChange = (e) => {
+    setSortOrder(e.target.value);
   };
 
-  const getSortIcon = (field) => {
-    const direction = sortDirection[field];
-    return direction === undefined ? (
-      <FontAwesomeIcon icon={faSort} />
-    ) : direction ? (
-      <FontAwesomeIcon icon={faChevronUp} />
-    ) : (
-      <FontAwesomeIcon icon={faChevronDown} />
-    );
-  };
+  const sortedData = [...data].sort((a, b) => {
+    if (sortOrder === "asc") {
+      return new Date(a.created_at) - new Date(b.created_at);
+    } else {
+      return new Date(b.created_at) - new Date(a.created_at);
+    }
+  });
+
+  const filteredData = sortedData.filter((row) =>
+    columns.some((column) =>
+      row[column.field]
+        ?.toString()
+        .toLowerCase()
+        .includes(searchQuery.toLowerCase())
+    )
+  );
 
   const exportToExcel = () => {
     const worksheetData = filteredData.map((row) => {
@@ -315,32 +366,87 @@ const ReusableTable = ({ apiUrl, columns, title }) => {
     XLSX.writeFile(workbook, fileName);
   };
 
-  const filteredData = data.filter((row) =>
-    columns.some((column) =>
-      row[column.field]
-        ?.toString()
-        .toLowerCase()
-        .includes(searchQuery.toLowerCase())
-    )
-  );
+  const exportToPdf = () => {
+    const doc = new jsPDF({
+      orientation: "landscape",
+      unit: "pt",
+      format: "a4",
+    });
+
+    doc.addFileToVFS("Amiri-Regular.ttf", arabicFont);
+    doc.addFont("Amiri-Regular.ttf", "Amiri", "normal");
+    doc.setFont("Amiri");
+
+    doc.setFontSize(16);
+    doc.text(title, doc.internal.pageSize.getWidth() / 2, 40, {
+      align: "center",
+    });
+
+    const tableData = filteredData.map((row) =>
+      columns.map((col) => row[col.field] || "")
+    );
+
+    const tableHeaders = columns.map((col) => col.label);
+
+    const reversedTableHeaders = tableHeaders.reverse();
+    const reversedTableData = tableData.map((row) => row.reverse());
+
+    doc.autoTable({
+      head: [reversedTableHeaders],
+      body: reversedTableData,
+      startY: 60,
+      styles: {
+        font: "Amiri",
+        fontStyle: "normal",
+        textColor: [0, 0, 0],
+        halign: "center",
+        overflow: "ellipsis",
+        wordWrap: "break-word",
+      },
+      headStyles: {
+        fillColor: [0, 97, 171],
+        textColor: [255, 255, 255],
+        fontSize: 12,
+      },
+      bodyStyles: {
+        fontSize: 10,
+      },
+      direction: "rtl",
+    });
+
+    doc.save(`${title}.pdf`);
+  };
 
   return (
     <Container>
       <h2>{title}</h2>
-      <AddButton onClick={handleAddNew}>
-        <FontAwesomeIcon icon={faPlus} /> إضافة جديد
-      </AddButton>
+      <div>
+        <AddButton onClick={handleAddNew}>
+          <FontAwesomeIcon icon={faPlus} /> إضافة جديد
+        </AddButton>
 
-      <ExportButton onClick={exportToExcel}>
-        <FontAwesomeIcon icon={faFileExcel} /> تصدير إلى Excel
-      </ExportButton>
+        <ExportButton onClick={exportToExcel}>
+          <FontAwesomeIcon icon={faFileExcel} /> تصدير إلى Excel
+        </ExportButton>
 
-      <SearchInput
-        type="text"
-        placeholder="بحث..."
-        value={searchQuery}
-        onChange={handleSearchChange}
-      />
+        <ExportButton onClick={exportToPdf}>
+          <FontAwesomeIcon icon={faFilePdf} /> تصدير إلى PDF
+        </ExportButton>
+      </div>
+
+      <div>
+        <SearchInput
+          type="text"
+          placeholder="بحث..."
+          value={searchQuery}
+          onChange={handleSearchChange}
+        />
+
+        <SortCombo value={sortOrder} onChange={handleSortOrderChange}>
+          <option value="desc">من الأحدث للأقدم</option>
+          <option value="asc">من الأقدم للأحدث</option>
+        </SortCombo>
+      </div>
 
       {formVisible && (
         <Overlay>
@@ -349,12 +455,34 @@ const ReusableTable = ({ apiUrl, columns, title }) => {
             {columns.map((field, idx) => (
               <FormGroup key={idx}>
                 <label>{field.label}:</label>
-                <input
-                  type="text"
-                  value={formData[field.field] || ""}
-                  onChange={(e) => handleChange(field.field, e.target.value)}
-                  required
-                />
+                {field.type === "checkbox" ? (
+                  <input
+                    type="checkbox"
+                    checked={formData[field.field] || false}
+                    onChange={(e) =>
+                      handleChange(field.field, e.target.checked)
+                    }
+                  />
+                ) : field.type === "select" ? (
+                  <select
+                    value={formData[field.field] || ""}
+                    onChange={(e) => handleChange(field.field, e.target.value)}
+                  >
+                    <option value="" disabled>
+                      اختر حالة
+                    </option>
+                    <option value="لم ابدأ فيها">لم ابدأ فيها</option>
+                    <option value="قيد التنفيذ">قيد التنفيذ</option>
+                    <option value="مكتملة">مكتملة</option>
+                  </select>
+                ) : (
+                  <input
+                    type="text"
+                    value={formData[field.field] || ""}
+                    onChange={(e) => handleChange(field.field, e.target.value)}
+                    required
+                  />
+                )}
               </FormGroup>
             ))}
             <FormActions>
@@ -368,61 +496,50 @@ const ReusableTable = ({ apiUrl, columns, title }) => {
           </FormContainer>
         </Overlay>
       )}
-
-      <Table>
-        <thead>
-          <tr>
-            <th>#</th>
-            {columns.map((col, idx) => (
-              <th
-                key={idx}
-                onClick={() => handleSort(col.field)}
-                style={{ cursor: "pointer" }}
-              >
-                {col.label} {getSortIcon(col.field)}
-              </th>
-            ))}
-            <th>تعديل</th>
-            <th>حذف</th>
-          </tr>
-        </thead>
-        <tbody>
-          {loading ? (
-            <tr>
-              <td colSpan={columns.length + 3}>جاري التحميل...</td>
-            </tr>
-          ) : filteredData.length === 0 ? (
-            <tr>
-              <td colSpan={columns.length + 3}>لا توجد بيانات للعرض</td>
-            </tr>
-          ) : (
-            filteredData.map((row, idx) => (
-              <TableRow key={idx}>
-                <td>{row.rowNumber || idx + 1}</td>
-                {columns.map((col, i) => (
-                  <td key={i}>{row[col.field]}</td>
+      <CardContainer>
+        {loading ? (
+          <p>جاري التحميل...</p>
+        ) : filteredData.length === 0 ? (
+          <p>لا توجد بيانات للعرض</p>
+        ) : (
+          filteredData.map((row, idx) => (
+            <Card key={idx}>
+              <CardHeader>
+                #{row.rowNumber || idx + 1} {row[columns[0].field]}
+              </CardHeader>
+              <CardContent>
+                {columns.map((col) => (
+                  <p key={col.field}>
+                    {col.type === "checkbox" ? (
+                      <input
+                        type="checkbox"
+                        checked={row[col.field] === 1}
+                        readOnly
+                      />
+                    ) : (
+                      row[col.field]
+                    )}
+                  </p>
                 ))}
-                <td>
-                  <EditButton onClick={() => handleEdit(row)}>
-                    <FontAwesomeIcon icon={faEdit} />
-                  </EditButton>
-                </td>
-                <td>
-                  <DeleteButton
-                    onClick={() => {
-                      if (window.confirm("هل تريد حذف هذه الصف؟")) {
-                        handleDelete(row);
-                      }
-                    }}
-                  >
-                    <FontAwesomeIcon icon={faTrash} />
-                  </DeleteButton>
-                </td>
-              </TableRow>
-            ))
-          )}
-        </tbody>
-      </Table>
+              </CardContent>
+              <CardActions>
+                <EditButton onClick={() => handleEdit(row)}>
+                  <FontAwesomeIcon icon={faEdit} />
+                </EditButton>
+                <DeleteButton
+                  onClick={() => {
+                    if (window.confirm("هل تريد حذف هذه الصف؟")) {
+                      handleDelete(row.id);
+                    }
+                  }}
+                >
+                  <FontAwesomeIcon icon={faTrash} />
+                </DeleteButton>
+              </CardActions>
+            </Card>
+          ))
+        )}
+      </CardContainer>
     </Container>
   );
 };
