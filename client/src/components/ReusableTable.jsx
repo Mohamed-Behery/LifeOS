@@ -34,30 +34,37 @@ const Card = styled.div`
   border-radius: 8px;
   padding: 16px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  position: relative;
 `;
 
 const CardHeader = styled.div`
   font-size: 18px;
   font-weight: bold;
   margin-bottom: 8px;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
   overflow: hidden;
-  white-space: nowrap;
   text-overflow: ellipsis;
+  max-width: 85%;
 `;
 
 const CardContent = styled.div`
   font-size: 14px;
   margin-bottom: 16px;
   p {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 3;
     overflow: hidden;
-    white-space: nowrap;
     text-overflow: ellipsis;
   }
 `;
 
 const CardActions = styled.div`
-  display: flex;
-  justify-content: space-between;
+  position: absolute;
+  top: 10px;
+  left: 10px;
 
   button {
     background: none;
@@ -163,8 +170,15 @@ const CancelButton = styled.button`
   }
 `;
 
-const AddButton = styled.button`
+const Actions = styled.div`
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+  gap: 8px;
   margin: 16px 0 16px 16px;
+`;
+
+const AddButton = styled.button`
   padding: 8px 16px;
   background-color: ${({ theme }) => theme.primary};
   color: ${({ theme }) => theme.neutral};
@@ -221,7 +235,6 @@ const SortCombo = styled.select`
   }
 `;
 const ExportButton = styled.button`
-  margin-left: 16px;
   padding: 8px 16px;
   background-color: #2196f3;
   color: white;
@@ -420,7 +433,7 @@ const ReusableTable = ({ apiUrl, columns, title }) => {
   return (
     <Container>
       <h2>{title}</h2>
-      <div>
+      <Actions>
         <AddButton onClick={handleAddNew}>
           <FontAwesomeIcon icon={faPlus} /> إضافة جديد
         </AddButton>
@@ -432,7 +445,7 @@ const ReusableTable = ({ apiUrl, columns, title }) => {
         <ExportButton onClick={exportToPdf}>
           <FontAwesomeIcon icon={faFilePdf} /> تصدير إلى PDF
         </ExportButton>
-      </div>
+      </Actions>
 
       <div>
         <SearchInput
@@ -480,7 +493,7 @@ const ReusableTable = ({ apiUrl, columns, title }) => {
                     type="text"
                     value={formData[field.field] || ""}
                     onChange={(e) => handleChange(field.field, e.target.value)}
-                    required
+                    required={!field.notRequired}
                   />
                 )}
               </FormGroup>
@@ -504,12 +517,10 @@ const ReusableTable = ({ apiUrl, columns, title }) => {
         ) : (
           filteredData.map((row, idx) => (
             <Card key={idx}>
-              <CardHeader>
-                #{row.rowNumber || idx + 1} {row[columns[0].field]}
-              </CardHeader>
+              <CardHeader>{row[columns[0].field]}</CardHeader>
               <CardContent>
-                {columns.map((col) => (
-                  <p key={col.field}>
+                {columns.slice(1).map((col, index) => (
+                  <p key={index}>
                     {col.type === "checkbox" ? (
                       <input
                         type="checkbox"
@@ -517,7 +528,7 @@ const ReusableTable = ({ apiUrl, columns, title }) => {
                         readOnly
                       />
                     ) : (
-                      row[col.field]
+                      row[col.field] || ""
                     )}
                   </p>
                 ))}
@@ -528,7 +539,7 @@ const ReusableTable = ({ apiUrl, columns, title }) => {
                 </EditButton>
                 <DeleteButton
                   onClick={() => {
-                    if (window.confirm("هل تريد حذف هذه الصف؟")) {
+                    if (window.confirm("هل تريد الحذف؟")) {
                       handleDelete(row.id);
                     }
                   }}

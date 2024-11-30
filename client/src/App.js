@@ -14,6 +14,8 @@ const AppContainer = styled.div`
   min-height: 100vh;
   background-color: ${({ theme }) => theme.bg};
   color: ${({ theme }) => theme.text};
+  overflow: auto;
+  width: 100%;
 `;
 
 const Content = styled.div`

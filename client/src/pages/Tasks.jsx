@@ -5,7 +5,7 @@ const Tasks = () => {
   const title = "إدارة مهامك";
   const columns = [
     { label: "العنوان", field: "title" },
-    { label: "الوصف", field: "description" },
+    { label: "الوصف", field: "description", notRequired: true },
     { label: "الحالة", field: "status", type: "select" },
     { label: "مكتملة", field: "completed", type: "checkbox" },
   ];

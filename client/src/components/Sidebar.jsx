@@ -16,7 +16,6 @@ const Container = styled.div`
   height: 100vh;
   background-color: ${({ theme }) => theme.bg};
   padding: 20px;
-  box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
   display: flex;
   flex-direction: column;
   align-items: ${(props) => (props.open ? "flex-start" : "center")};

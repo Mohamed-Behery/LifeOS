@@ -8,9 +8,24 @@
 body {
   overflow-x: hidden;
 }
-a {
-  text-decoration: none;
-}
 ul {
   list-style: none;
+}
+html {
+  scroll-behavior: smooth;
+  scrollbar-width: normal;
+  scrollbar-color: #0061ab #ddd;
+}
+::-webkit-scrollbar {
+  width: 0.6vw;
+}
+::-webkit-scrollbar-thumb {
+  background: #0061ab;
+}
+::-webkit-scrollbar-track {
+  background: #ddd;
+}
+a {
+  text-decoration: none;
+  color: #000;
 }
