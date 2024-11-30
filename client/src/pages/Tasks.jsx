@@ -1,4 +1,4 @@
-import ReusableTable from "./../components/ReusableTable";
+import ReusableCards from "./../components/ReusableCards";
 
 const Tasks = () => {
   const apiUrl = "tasks";
@@ -10,7 +10,7 @@ const Tasks = () => {
     { label: "مكتملة", field: "completed", type: "checkbox" },
   ];
 
-  return <ReusableTable apiUrl={apiUrl} columns={columns} title={title} />;
+  return <ReusableCards apiUrl={apiUrl} columns={columns} title={title} />;
 };
 
 export default Tasks;

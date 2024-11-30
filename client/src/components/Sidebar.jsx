@@ -9,10 +9,17 @@ import {
   faMoon,
   faNoteSticky,
   faTasks,
+  faCaretDown,
+  faCashRegister,
+  faCreditCard,
+  faMoneyBill,
+  faMoneyBill1Wave,
+  faCartShopping,
+  faArchive,
 } from "@fortawesome/free-solid-svg-icons";
 
 const Container = styled.div`
-  width: ${(props) => (props.open ? "300px" : "60px")};
+  width: ${(props) => (props.open ? "300px" : "75px")};
   height: 100vh;
   background-color: ${({ theme }) => theme.bg};
   padding: 20px;
@@ -63,17 +70,18 @@ const SidebarList = styled.ul`
 
 const SidebarItem = styled.li`
   margin: 16px 0;
-  font-size: 16px;
   font-weight: bold;
   color: ${({ theme }) => theme.text};
   cursor: pointer;
   transition: all 0.3s ease;
   display: flex;
   align-items: center;
+  position: relative;
+  user-select: none;
   justify-content: ${(props) => (props.open ? "flex-start" : "center")};
-
   a {
     color: ${({ theme }) => theme.text};
+    user-select: none;
   }
 
   a:hover {
@@ -82,6 +90,54 @@ const SidebarItem = styled.li`
 
   svg {
     margin-left: ${(props) => (props.open ? "8px" : "0")};
+    aspect-ratio: 1;
+  }
+
+  svg.fa-caret-down {
+    position: absolute;
+    left: ${(props) => (props.open ? "10%" : "50%")};
+  }
+`;
+
+const SubMenu = styled.ul`
+  background-color: ${({ theme }) => theme.neutral};
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  border-radius: 8px;
+  border: 1px solid ${({ theme }) => theme.border};
+  padding: 8px;
+  margin-top: 8px;
+  margin-bottom: 16px;
+  width: 100%;
+
+  li {
+    display: flex;
+    align-items: center;
+    /* font-size: 16px; */
+    font-weight: normal;
+    padding: 8px 0;
+    color: ${({ theme }) => theme.text};
+    cursor: pointer;
+    transition: all 0.3s ease;
+
+    a {
+      display: flex;
+      align-items: center;
+      color: ${({ theme }) => theme.text};
+      font-weight: bold;
+      gap: 10px;
+
+      &:hover {
+        color: ${({ theme }) => theme.primary};
+      }
+
+      /* svg {
+        font-size: 20px;
+      } */
+
+      span {
+        display: ${(props) => (props.open ? "inline" : "none")};
+      }
+    }
   }
 `;
 
@@ -91,10 +147,16 @@ const DarkModeToggle = styled(SidebarItem)`
 
 const Sidebar = ({ darkMode, toggleDarkMode }) => {
   const [isSidebarOpen, setSidebarOpen] = useState(true);
+  const [isMoneyOpen, setMoneyOpen] = useState(false);
 
   const toggleSidebar = () => {
     setSidebarOpen(!isSidebarOpen);
   };
+
+  const toggleMoney = () => {
+    setMoneyOpen(!isMoneyOpen);
+  };
+
   return (
     <Container open={isSidebarOpen}>
       <LogoContainer>
@@ -121,6 +183,52 @@ const Sidebar = ({ darkMode, toggleDarkMode }) => {
             <FontAwesomeIcon icon={faTasks} /> {isSidebarOpen && "المهام"}
           </Link>
         </SidebarItem>
+        <SidebarItem onClick={toggleMoney} open={isSidebarOpen}>
+          <FontAwesomeIcon icon={faMoneyBill} /> {isSidebarOpen && "الفلوس"}{" "}
+          {isSidebarOpen && <FontAwesomeIcon icon={faCaretDown} />}
+        </SidebarItem>
+
+        {isMoneyOpen && (
+          <SubMenu open={isSidebarOpen}>
+            <li>
+              <Link to="/cash-registers">
+                <FontAwesomeIcon icon={faCashRegister} />
+                <span>الكاش</span>
+              </Link>
+            </li>
+            <li>
+              <Link to="/banks">
+                <FontAwesomeIcon icon={faCreditCard} />
+                <span>البنك</span>
+              </Link>
+            </li>
+            <li>
+              <Link to="/revenues">
+                <FontAwesomeIcon icon={faMoneyBill1Wave} />
+                <span>الدخل</span>
+              </Link>
+            </li>
+            <li>
+              <Link to="/expenses">
+                <FontAwesomeIcon icon={faCartShopping} />
+                <span>المصروفات</span>
+              </Link>
+            </li>
+            <li>
+              <Link to="/revenue-types">
+                <FontAwesomeIcon icon={faArchive} />
+                <span>مصادر الدخل</span>
+              </Link>
+            </li>
+            <li>
+              <Link to="/expense-types">
+                <FontAwesomeIcon icon={faArchive} />
+                <span>أنواع المصروفات</span>
+              </Link>
+            </li>
+          </SubMenu>
+        )}
+
         <hr />
         <DarkModeToggle onClick={toggleDarkMode} open={isSidebarOpen}>
           {darkMode ? (

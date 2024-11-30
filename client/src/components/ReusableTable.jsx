@@ -1,15 +1,18 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import styled from "styled-components";
-import * as XLSX from "xlsx";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faEdit,
   faPlus,
   faTrash,
+  // faSort,
+  faChevronUp,
+  faChevronDown,
   faFileExcel,
   faFilePdf,
 } from "@fortawesome/free-solid-svg-icons";
+import * as XLSX from "xlsx";
 import { arabicFont } from "../utils/arabicFont";
 import jsPDF from "jspdf";
 import "jspdf-autotable";
@@ -20,62 +23,42 @@ const Container = styled.div`
   }
 `;
 
-const CardContainer = styled.div`
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  gap: 16px;
-  margin-top: 16px;
-`;
+const Table = styled.table`
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 20px;
 
-const Card = styled.div`
-  background-color: ${({ theme }) => theme.bg};
-  color: ${({ theme }) => theme.text};
-  border: 1px solid ${({ theme }) => theme.border};
-  border-radius: 8px;
-  padding: 16px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  position: relative;
-`;
-
-const CardHeader = styled.div`
-  font-size: 18px;
-  font-weight: bold;
-  margin-bottom: 8px;
-  display: -webkit-box;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 2;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  max-width: 85%;
-`;
-
-const CardContent = styled.div`
-  font-size: 14px;
-  margin-bottom: 16px;
-  p {
-    display: -webkit-box;
-    -webkit-box-orient: vertical;
-    -webkit-line-clamp: 3;
-    overflow: hidden;
-    text-overflow: ellipsis;
+  th,
+  td {
+    padding: 10px;
+    border: 1px solid ${({ theme }) => theme.border};
+    text-align: center;
+    font-size: 18px;
+    font-weight: bold;
   }
-`;
 
-const CardActions = styled.div`
-  position: absolute;
-  top: 10px;
-  left: 10px;
-
-  button {
-    background: none;
-    border: none;
+  th {
+    background-color: ${({ theme }) => theme.primary};
+    color: ${({ theme }) => theme.neutral};
+    font-size: 24px;
+    user-select: none;
     cursor: pointer;
-    padding: 4px;
 
-    &:hover {
-      opacity: 0.7;
+    svg {
+      margin-right: 8px;
+      position: relative;
+      top: 2px;
+      font-size: 16px;
     }
   }
+
+  td {
+    color: ${({ theme }) => theme.text};
+  }
+`;
+
+const TableRow = styled.tr`
+  color: ${({ theme }) => theme.text};
 `;
 
 const Overlay = styled.div`
@@ -94,52 +77,37 @@ const Overlay = styled.div`
 const FormContainer = styled.form`
   background-color: ${({ theme }) => theme.bg};
   color: ${({ theme }) => theme.text};
-  padding: 16px;
+  padding: 20px;
   border-radius: 8px;
   width: 450px;
+  max-height: 80vh;
+  overflow-y: auto;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 
   h3 {
     color: ${({ theme }) => theme.text};
     font-size: 24px;
-    margin-bottom: 16px;
+    margin-bottom: 20px;
     text-align: center;
   }
 `;
 
 const FormGroup = styled.div`
-  margin-bottom: 16px;
+  margin-bottom: 15px;
+
   label {
     display: block;
-    margin-bottom: 4px;
+    margin-bottom: 5px;
   }
-  input,
-  select {
+  input {
     width: 100%;
     padding: 8px;
     border-radius: 8px;
-    border: none;
-    background-color: transparent;
-    color: ${({ theme }) => theme.text};
-
-    &:focus {
-      outline: none;
-    }
-
-    option {
-      color: #000;
-    }
+    border: 1px solid ${({ theme }) => theme.border};
   }
 
-  input:focus,
-  select:focus {
+  input:focus {
     outline: none;
-  }
-
-  input[type="checkbox"] {
-    width: 24px;
-    height: 24px;
-    cursor: pointer;
   }
 `;
 
@@ -149,18 +117,22 @@ const FormActions = styled.div`
 `;
 
 const SubmitButton = styled.button`
-  background-color: ${({ theme }) => theme.primary};
-  color: ${({ theme }) => theme.neutral};
-  padding: 8px 16px;
+  background-color: #4caf50;
+  color: white;
+  padding: 10px 15px;
   border: none;
   border-radius: 4px;
   cursor: pointer;
+
+  &:hover {
+    background-color: #45a049;
+  }
 `;
 
 const CancelButton = styled.button`
   background-color: #f44336;
   color: white;
-  padding: 8px 16px;
+  padding: 10px 15px;
   border: none;
   border-radius: 4px;
   cursor: pointer;
@@ -170,16 +142,9 @@ const CancelButton = styled.button`
   }
 `;
 
-const Actions = styled.div`
-  display: flex;
-  justify-content: flex-start;
-  align-items: center;
-  gap: 8px;
-  margin: 16px 0 16px 16px;
-`;
-
 const AddButton = styled.button`
-  padding: 8px 16px;
+  margin: 0 16px 16px 16px;
+  padding: 10px 20px;
   background-color: ${({ theme }) => theme.primary};
   color: ${({ theme }) => theme.neutral};
   border: none;
@@ -190,6 +155,8 @@ const AddButton = styled.button`
 
   svg {
     margin-left: 8px;
+    position: relative;
+    top: 2px;
   }
 `;
 
@@ -197,7 +164,7 @@ const EditButton = styled.button`
   background: none;
   border: none;
   cursor: pointer;
-  padding: 4px;
+  padding: 5px;
   color: #0061ab;
 `;
 
@@ -205,37 +172,46 @@ const DeleteButton = styled.button`
   background: none;
   border: none;
   cursor: pointer;
-  padding: 4px;
+  padding: 5px;
   color: #dc143c;
 `;
 
 const SearchInput = styled.input`
-  width: 100%;
+  width: 97%;
+  margin: 0 16px;
   padding: 8px;
-  margin-bottom: 16px;
   border-radius: 8px;
+  font-size: 18px;
+  font-weight: bold;
   border: 1px solid ${({ theme }) => theme.border};
-  background: transparent;
-  color: ${({ theme }) => theme.text};
+  outline: none;
 `;
 
-const SortCombo = styled.select`
-  background: none;
-  border: none;
-  cursor: pointer;
-  padding: 4px;
-  color: ${({ theme }) => theme.text};
+const FilterWrapper = styled.div`
+  margin: 0 20px 20px 0;
 
-  &:focus {
-    outline: none;
+  input {
+    padding: 4px;
+    border-radius: 4px;
+    font-size: 18px;
+    margin-left: 16px;
+    border: 1px solid ${({ theme }) => theme.border};
   }
 
-  option {
-    color: #000;
+  button {
+    padding: 8px 16px;
+    border-radius: 4px;
+    border: none;
+    background-color: #276482;
+    color: white;
+    cursor: pointer;
+    font-size: 16px;
   }
 `;
+
 const ExportButton = styled.button`
-  padding: 8px 16px;
+  margin-left: 16px;
+  padding: 10px 20px;
   background-color: #2196f3;
   color: white;
   border: none;
@@ -254,23 +230,32 @@ const ExportButton = styled.button`
   }
 `;
 
-const ReusableTable = ({ apiUrl, columns, title }) => {
+const ReusableTable = ({ apiUrl, columns, title, linkedTables = [] }) => {
   const [data, setData] = useState([]);
+  // const [linkedData, setLinkedData] = useState({});
   const [formData, setFormData] = useState({});
   const [editing, setEditing] = useState(false);
   const [formVisible, setFormVisible] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
-  const [sortOrder, setSortOrder] = useState("desc");
+  const [filterCriteria, setFilterCriteria] = useState({
+    fromDate: "",
+    toDate: "",
+  });
+  const [sortDirection, setSortDirection] = useState(true);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
   useEffect(() => {
     const fetchData = async () => {
       try {
         setLoading(true);
-        const response = await axios.get(`/api/${apiUrl}`);
+        const response = await axios.get(apiUrl);
         setData(response.data);
       } catch (error) {
         console.error("Error fetching data:", error);
+        setError(
+          "حدث خطاء أثناء إستدعاء البيانات: " + error.response.data.message
+        );
       } finally {
         setLoading(false);
       }
@@ -286,7 +271,7 @@ const ReusableTable = ({ apiUrl, columns, title }) => {
 
   const handleDelete = async (id) => {
     try {
-      await axios.delete(`/api/${apiUrl}/${id}`);
+      await axios.delete(`${apiUrl}/${id}`);
       setData((prevData) => prevData.filter((item) => item.id !== id));
     } catch (error) {
       console.error("Error deleting:", error);
@@ -297,25 +282,30 @@ const ReusableTable = ({ apiUrl, columns, title }) => {
     e.preventDefault();
     try {
       if (editing) {
-        await axios.put(`/api/${apiUrl}/${formData.id}`, formData);
+        await axios.put(`${apiUrl}/${formData.id}`, formData);
       } else {
         const maxRowNumber = Math.max(
           ...data.map((item) => item.rowNumber || 0)
         );
         const newRowNumber = maxRowNumber + 1;
 
-        await axios.post(`/api/${apiUrl}`, {
-          ...formData,
-          rowNumber: newRowNumber,
-        });
+        await axios.post(apiUrl, { ...formData, rowNumber: newRowNumber });
       }
+
       setFormData({});
       setEditing(false);
       setFormVisible(false);
-      const response = await axios.get(`/api/${apiUrl}`);
+
+      const response = await axios.get(apiUrl);
       setData(response.data);
     } catch (error) {
       console.error("Error saving data:", error);
+
+      if (error.response) {
+        setError("حدث خطأ أثناء حفظ البيانات: " + error.response.data.message);
+      } else {
+        setError("حدث خطأ أثناء الاتصال بالخادم.");
+      }
     }
   };
 
@@ -333,26 +323,29 @@ const ReusableTable = ({ apiUrl, columns, title }) => {
     setSearchQuery(e.target.value);
   };
 
-  const handleSortOrderChange = (e) => {
-    setSortOrder(e.target.value);
+  const handleSort = (field) => {
+    const currentDirection = sortDirection[field];
+    setSortDirection({ [field]: !currentDirection });
+
+    const sortedData = [...data].sort((a, b) => {
+      if (a[field] < b[field]) return currentDirection ? -1 : 1;
+      if (a[field] > b[field]) return currentDirection ? 1 : -1;
+      return 0;
+    });
+
+    setData(sortedData);
   };
 
-  const sortedData = [...data].sort((a, b) => {
-    if (sortOrder === "asc") {
-      return new Date(a.created_at) - new Date(b.created_at);
-    } else {
-      return new Date(b.created_at) - new Date(a.created_at);
-    }
-  });
-
-  const filteredData = sortedData.filter((row) =>
-    columns.some((column) =>
-      row[column.field]
-        ?.toString()
-        .toLowerCase()
-        .includes(searchQuery.toLowerCase())
-    )
-  );
+  const getSortIcon = (field) => {
+    const direction = sortDirection[field];
+    return direction === undefined ? (
+      ""
+    ) : direction ? (
+      <FontAwesomeIcon icon={faChevronUp} />
+    ) : (
+      <FontAwesomeIcon icon={faChevronDown} />
+    );
+  };
 
   const exportToExcel = () => {
     const worksheetData = filteredData.map((row) => {
@@ -379,6 +372,35 @@ const ReusableTable = ({ apiUrl, columns, title }) => {
     XLSX.writeFile(workbook, fileName);
   };
 
+  // Handle changes in filter inputs
+  const handleFilterChange = (key, value) => {
+    setFilterCriteria({ ...filterCriteria, [key]: value });
+  };
+
+  // Filter data based on criteria
+  const filteredData = data
+    .filter((row) =>
+      columns.some((column) =>
+        row[column.field]
+          ?.toString()
+          .toLowerCase()
+          .includes(searchQuery.toLowerCase())
+      )
+    )
+    .filter((row) => {
+      const rowDate = new Date(row.date); // Assuming a `date` field exists in the table
+      const fromDate = filterCriteria.fromDate
+        ? new Date(filterCriteria.fromDate)
+        : null;
+      const toDate = filterCriteria.toDate
+        ? new Date(filterCriteria.toDate)
+        : null;
+
+      if (fromDate && rowDate < fromDate) return false;
+      if (toDate && rowDate > toDate) return false;
+      return true;
+    });
+
   const exportToPdf = () => {
     const doc = new jsPDF({
       orientation: "landscape",
@@ -386,21 +408,25 @@ const ReusableTable = ({ apiUrl, columns, title }) => {
       format: "a4",
     });
 
+    // إعداد الخط العربي
     doc.addFileToVFS("Amiri-Regular.ttf", arabicFont);
     doc.addFont("Amiri-Regular.ttf", "Amiri", "normal");
     doc.setFont("Amiri");
 
+    // إضافة عنوان التقرير
     doc.setFontSize(16);
     doc.text(title, doc.internal.pageSize.getWidth() / 2, 40, {
       align: "center",
     });
 
+    // إعداد البيانات والجداول
     const tableData = filteredData.map((row) =>
       columns.map((col) => row[col.field] || "")
     );
 
     const tableHeaders = columns.map((col) => col.label);
 
+    // عكس ترتيب الأعمدة لدعم الـ RTL
     const reversedTableHeaders = tableHeaders.reverse();
     const reversedTableData = tableData.map((row) => row.reverse());
 
@@ -427,39 +453,57 @@ const ReusableTable = ({ apiUrl, columns, title }) => {
       direction: "rtl",
     });
 
+    // حفظ الملف
     doc.save(`${title}.pdf`);
   };
 
   return (
     <Container>
       <h2>{title}</h2>
-      <Actions>
-        <AddButton onClick={handleAddNew}>
-          <FontAwesomeIcon icon={faPlus} /> إضافة جديد
-        </AddButton>
+      <AddButton onClick={handleAddNew}>
+        <FontAwesomeIcon icon={faPlus} /> إضافة جديد
+      </AddButton>
 
-        <ExportButton onClick={exportToExcel}>
-          <FontAwesomeIcon icon={faFileExcel} /> تصدير إلى Excel
-        </ExportButton>
+      <ExportButton onClick={exportToExcel}>
+        <FontAwesomeIcon icon={faFileExcel} /> تصدير إلى Excel
+      </ExportButton>
+      <ExportButton onClick={exportToPdf}>
+        <FontAwesomeIcon icon={faFilePdf} /> تصدير إلى PDF
+      </ExportButton>
 
-        <ExportButton onClick={exportToPdf}>
-          <FontAwesomeIcon icon={faFilePdf} /> تصدير إلى PDF
-        </ExportButton>
-      </Actions>
-
-      <div>
-        <SearchInput
-          type="text"
-          placeholder="بحث..."
-          value={searchQuery}
-          onChange={handleSearchChange}
+      <FilterWrapper>
+        <input
+          type="date"
+          value={filterCriteria.fromDate}
+          onChange={(e) => handleFilterChange("fromDate", e.target.value)}
+          placeholder="من تاريخ"
         />
+        <input
+          type="date"
+          value={filterCriteria.toDate}
+          onChange={(e) => handleFilterChange("toDate", e.target.value)}
+          placeholder="إلى تاريخ"
+        />
+        <button
+          onClick={() =>
+            setFilterCriteria({
+              fromDate: "",
+              toDate: "",
+            })
+          }
+        >
+          إلغاء الفلترة
+        </button>
+      </FilterWrapper>
 
-        <SortCombo value={sortOrder} onChange={handleSortOrderChange}>
-          <option value="desc">من الأحدث للأقدم</option>
-          <option value="asc">من الأقدم للأحدث</option>
-        </SortCombo>
-      </div>
+      <SearchInput
+        type="text"
+        placeholder="بحث..."
+        value={searchQuery}
+        onChange={handleSearchChange}
+      />
+
+      {error && <p style={{ color: "red" }}>{error}</p>}
 
       {formVisible && (
         <Overlay>
@@ -467,35 +511,14 @@ const ReusableTable = ({ apiUrl, columns, title }) => {
             <h3>{editing ? "تعديل" : "إضافة جديد"}</h3>
             {columns.map((field, idx) => (
               <FormGroup key={idx}>
-                <label>{field.label}:</label>
-                {field.type === "checkbox" ? (
-                  <input
-                    type="checkbox"
-                    checked={formData[field.field] || false}
-                    onChange={(e) =>
-                      handleChange(field.field, e.target.checked)
-                    }
-                  />
-                ) : field.type === "select" ? (
-                  <select
-                    value={formData[field.field] || ""}
-                    onChange={(e) => handleChange(field.field, e.target.value)}
-                  >
-                    <option value="" disabled>
-                      اختر حالة
-                    </option>
-                    <option value="لم ابدأ فيها">لم ابدأ فيها</option>
-                    <option value="قيد التنفيذ">قيد التنفيذ</option>
-                    <option value="مكتملة">مكتملة</option>
-                  </select>
-                ) : (
-                  <input
-                    type="text"
-                    value={formData[field.field] || ""}
-                    onChange={(e) => handleChange(field.field, e.target.value)}
-                    required={!field.notRequired}
-                  />
-                )}
+                <label>{!field.hidden && field.label}</label>
+                <input
+                  type={field.type || "text"}
+                  value={formData[field.field] || ""}
+                  onChange={(e) => handleChange(field.field, e.target.value)}
+                  required={!field.notRequired}
+                  hidden={field.hidden}
+                />
               </FormGroup>
             ))}
             <FormActions>
@@ -506,51 +529,58 @@ const ReusableTable = ({ apiUrl, columns, title }) => {
                 إلغاء
               </CancelButton>
             </FormActions>
+            {error && <p style={{ color: "red" }}>{error}</p>}
           </FormContainer>
         </Overlay>
       )}
-      <CardContainer>
-        {loading ? (
-          <p>جاري التحميل...</p>
-        ) : filteredData.length === 0 ? (
-          <p>لا توجد بيانات للعرض</p>
-        ) : (
-          filteredData.map((row, idx) => (
-            <Card key={idx}>
-              <CardHeader>{row[columns[0].field]}</CardHeader>
-              <CardContent>
-                {columns.slice(1).map((col, index) => (
-                  <p key={index}>
-                    {col.type === "checkbox" ? (
-                      <input
-                        type="checkbox"
-                        checked={row[col.field] === 1}
-                        readOnly
-                      />
-                    ) : (
-                      row[col.field] || ""
-                    )}
-                  </p>
+
+      <Table>
+        <thead>
+          <tr>
+            <th>رقم</th>
+            {columns.map((col, idx) => (
+              <th key={idx} onClick={() => handleSort(col.field)}>
+                {col.label} {getSortIcon(col.field)}
+              </th>
+            ))}
+            <th>الإجراءات</th>
+          </tr>
+        </thead>
+        <tbody>
+          {loading ? (
+            <tr>
+              <td colSpan={columns.length + 3}>جاري التحميل...</td>
+            </tr>
+          ) : filteredData.length > 0 ? (
+            filteredData.map((row, idx) => (
+              <TableRow key={idx}>
+                <td>{row.rowNumber || idx + 1}</td>
+                {columns.map((col, i) => (
+                  <td key={i}>{row[col.field]}</td>
                 ))}
-              </CardContent>
-              <CardActions>
-                <EditButton onClick={() => handleEdit(row)}>
-                  <FontAwesomeIcon icon={faEdit} />
-                </EditButton>
-                <DeleteButton
-                  onClick={() => {
-                    if (window.confirm("هل تريد الحذف؟")) {
-                      handleDelete(row.id);
-                    }
-                  }}
-                >
-                  <FontAwesomeIcon icon={faTrash} />
-                </DeleteButton>
-              </CardActions>
-            </Card>
-          ))
-        )}
-      </CardContainer>
+                <td>
+                  <EditButton onClick={() => handleEdit(row)}>
+                    <FontAwesomeIcon icon={faEdit} />
+                  </EditButton>
+                  <DeleteButton
+                    onClick={() => {
+                      if (window.confirm("هل تريد حذف هذه الصف؟")) {
+                        handleDelete(row.id);
+                      }
+                    }}
+                  >
+                    <FontAwesomeIcon icon={faTrash} />
+                  </DeleteButton>
+                </td>
+              </TableRow>
+            ))
+          ) : (
+            <tr>
+              <td colSpan={columns.length + 2}>لا توجد بيانات للعرض</td>
+            </tr>
+          )}
+        </tbody>
+      </Table>
     </Container>
   );
 };
