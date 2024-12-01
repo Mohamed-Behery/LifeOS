@@ -1,4 +1,4 @@
-import ReusableCards from "./../components/ReusableCards";
+import ReusableCardView from "../components/ReusableCardView";
 
 const Notes = () => {
   const apiUrl = "notes";
@@ -8,7 +8,7 @@ const Notes = () => {
     { label: "المحتوى", field: "content" },
   ];
 
-  return <ReusableCards apiUrl={apiUrl} columns={columns} title={title} />;
+  return <ReusableCardView apiUrl={apiUrl} columns={columns} title={title} />;
 };
 
 export default Notes;

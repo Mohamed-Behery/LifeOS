@@ -184,7 +184,6 @@ const AddButton = styled.button`
   color: ${({ theme }) => theme.neutral};
   border: none;
   cursor: pointer;
-  font-size: 16px;
   font-weight: bold;
   border-radius: 4px;
 
@@ -241,7 +240,6 @@ const ExportButton = styled.button`
   border: none;
   border-radius: 4px;
   cursor: pointer;
-  font-size: 16px;
 
   &:hover {
     background-color: #1976d2;
@@ -254,7 +252,7 @@ const ExportButton = styled.button`
   }
 `;
 
-const ReusableCards = ({ apiUrl, columns, title }) => {
+const ReusableCardView = ({ apiUrl, columns, title }) => {
   const [data, setData] = useState([]);
   const [formData, setFormData] = useState({});
   const [editing, setEditing] = useState(false);
@@ -555,4 +553,4 @@ const ReusableCards = ({ apiUrl, columns, title }) => {
   );
 };
 
-export default ReusableCards;
+export default ReusableCardView;

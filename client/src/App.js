@@ -5,6 +5,7 @@ import { lightTheme, darkTheme } from "./utils/Theme";
 import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
 import Sidebar from "./components/Sidebar";
 import Home from "./pages/Home";
+import Dashboard from "./pages/Dashboard";
 import Notes from "./pages/Notes";
 import { useEffect, useState } from "react";
 import Tasks from "./pages/Tasks";
@@ -59,6 +60,8 @@ function App() {
           <Content>
             <Routes>
               <Route path="/" element={<Home />} />
+              <Route path="/Home" element={<Home />} />
+              <Route path="/dashboard" element={<Dashboard />} />
               <Route path="/notes" element={<Notes />} />
               <Route path="/tasks" element={<Tasks />} />
               <Route path="/cash-registers" element={<CashRegisters />} />

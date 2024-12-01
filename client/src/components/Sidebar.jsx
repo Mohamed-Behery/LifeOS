@@ -16,6 +16,7 @@ import {
   faMoneyBill1Wave,
   faCartShopping,
   faArchive,
+  faChartPie,
 } from "@fortawesome/free-solid-svg-icons";
 
 const Container = styled.div`
@@ -170,6 +171,12 @@ const Sidebar = ({ darkMode, toggleDarkMode }) => {
         <SidebarItem open={isSidebarOpen}>
           <Link to="/">
             <FontAwesomeIcon icon={faHome} /> {isSidebarOpen && "الرئيسية"}
+          </Link>
+        </SidebarItem>
+        <SidebarItem open={isSidebarOpen}>
+          <Link to="/dashboard">
+            <FontAwesomeIcon icon={faChartPie} />
+            {isSidebarOpen && "الإحصائيات"}
           </Link>
         </SidebarItem>
         <SidebarItem open={isSidebarOpen}>

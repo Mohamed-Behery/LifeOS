@@ -6,7 +6,6 @@ import {
   faEdit,
   faPlus,
   faTrash,
-  // faSort,
   faChevronUp,
   faChevronDown,
   faFileExcel,
@@ -30,17 +29,16 @@ const Table = styled.table`
 
   th,
   td {
-    padding: 10px;
+    padding: 8px;
     border: 1px solid ${({ theme }) => theme.border};
     text-align: center;
-    font-size: 18px;
     font-weight: bold;
   }
 
   th {
     background-color: ${({ theme }) => theme.primary};
     color: ${({ theme }) => theme.neutral};
-    font-size: 24px;
+    font-size: 18px;
     user-select: none;
     cursor: pointer;
 
@@ -103,7 +101,9 @@ const FormGroup = styled.div`
     width: 100%;
     padding: 8px;
     border-radius: 8px;
-    border: 1px solid ${({ theme }) => theme.border};
+    background-color: transparent;
+    border: none;
+    color: ${({ theme }) => theme.text};
   }
 
   input:focus {
@@ -117,22 +117,18 @@ const FormActions = styled.div`
 `;
 
 const SubmitButton = styled.button`
-  background-color: #4caf50;
-  color: white;
-  padding: 10px 15px;
+  background-color: ${({ theme }) => theme.primary};
+  color: ${({ theme }) => theme.neutral};
+  padding: 8px 16px;
   border: none;
   border-radius: 4px;
   cursor: pointer;
-
-  &:hover {
-    background-color: #45a049;
-  }
 `;
 
 const CancelButton = styled.button`
   background-color: #f44336;
   color: white;
-  padding: 10px 15px;
+  padding: 8px 16px;
   border: none;
   border-radius: 4px;
   cursor: pointer;
@@ -142,21 +138,25 @@ const CancelButton = styled.button`
   }
 `;
 
+const Actions = styled.div`
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+  gap: 8px;
+  margin: 16px 0 16px 16px;
+`;
+
 const AddButton = styled.button`
-  margin: 0 16px 16px 16px;
-  padding: 10px 20px;
+  padding: 8px 16px;
   background-color: ${({ theme }) => theme.primary};
   color: ${({ theme }) => theme.neutral};
   border: none;
   cursor: pointer;
-  font-size: 16px;
   font-weight: bold;
   border-radius: 4px;
 
   svg {
     margin-left: 8px;
-    position: relative;
-    top: 2px;
   }
 `;
 
@@ -177,23 +177,21 @@ const DeleteButton = styled.button`
 `;
 
 const SearchInput = styled.input`
-  width: 97%;
-  margin: 0 16px;
+  width: 100%;
   padding: 8px;
+  margin-bottom: 16px;
   border-radius: 8px;
-  font-size: 18px;
-  font-weight: bold;
   border: 1px solid ${({ theme }) => theme.border};
-  outline: none;
+  background: transparent;
+  color: ${({ theme }) => theme.text};
 `;
 
 const FilterWrapper = styled.div`
-  margin: 0 20px 20px 0;
+  margin-bottom: 16px;
 
   input {
     padding: 4px;
     border-radius: 4px;
-    font-size: 18px;
     margin-left: 16px;
     border: 1px solid ${({ theme }) => theme.border};
   }
@@ -205,19 +203,16 @@ const FilterWrapper = styled.div`
     background-color: #276482;
     color: white;
     cursor: pointer;
-    font-size: 16px;
   }
 `;
 
 const ExportButton = styled.button`
-  margin-left: 16px;
-  padding: 10px 20px;
+  padding: 8px 16px;
   background-color: #2196f3;
   color: white;
   border: none;
   border-radius: 4px;
   cursor: pointer;
-  font-size: 16px;
 
   &:hover {
     background-color: #1976d2;
@@ -232,7 +227,6 @@ const ExportButton = styled.button`
 
 const ReusableTable = ({ apiUrl, columns, title, linkedTables = [] }) => {
   const [data, setData] = useState([]);
-  // const [linkedData, setLinkedData] = useState({});
   const [formData, setFormData] = useState({});
   const [editing, setEditing] = useState(false);
   const [formVisible, setFormVisible] = useState(false);
@@ -372,12 +366,10 @@ const ReusableTable = ({ apiUrl, columns, title, linkedTables = [] }) => {
     XLSX.writeFile(workbook, fileName);
   };
 
-  // Handle changes in filter inputs
   const handleFilterChange = (key, value) => {
     setFilterCriteria({ ...filterCriteria, [key]: value });
   };
 
-  // Filter data based on criteria
   const filteredData = data
     .filter((row) =>
       columns.some((column) =>
@@ -388,7 +380,7 @@ const ReusableTable = ({ apiUrl, columns, title, linkedTables = [] }) => {
       )
     )
     .filter((row) => {
-      const rowDate = new Date(row.date); // Assuming a `date` field exists in the table
+      const rowDate = new Date(row.date);
       const fromDate = filterCriteria.fromDate
         ? new Date(filterCriteria.fromDate)
         : null;
@@ -408,25 +400,21 @@ const ReusableTable = ({ apiUrl, columns, title, linkedTables = [] }) => {
       format: "a4",
     });
 
-    // إعداد الخط العربي
     doc.addFileToVFS("Amiri-Regular.ttf", arabicFont);
     doc.addFont("Amiri-Regular.ttf", "Amiri", "normal");
     doc.setFont("Amiri");
 
-    // إضافة عنوان التقرير
     doc.setFontSize(16);
     doc.text(title, doc.internal.pageSize.getWidth() / 2, 40, {
       align: "center",
     });
 
-    // إعداد البيانات والجداول
     const tableData = filteredData.map((row) =>
       columns.map((col) => row[col.field] || "")
     );
 
     const tableHeaders = columns.map((col) => col.label);
 
-    // عكس ترتيب الأعمدة لدعم الـ RTL
     const reversedTableHeaders = tableHeaders.reverse();
     const reversedTableData = tableData.map((row) => row.reverse());
 
@@ -453,24 +441,25 @@ const ReusableTable = ({ apiUrl, columns, title, linkedTables = [] }) => {
       direction: "rtl",
     });
 
-    // حفظ الملف
     doc.save(`${title}.pdf`);
   };
 
   return (
     <Container>
       <h2>{title}</h2>
-      <AddButton onClick={handleAddNew}>
-        <FontAwesomeIcon icon={faPlus} /> إضافة جديد
-      </AddButton>
+      <Actions>
+        <AddButton onClick={handleAddNew}>
+          <FontAwesomeIcon icon={faPlus} /> إضافة جديد
+        </AddButton>
 
-      <ExportButton onClick={exportToExcel}>
-        <FontAwesomeIcon icon={faFileExcel} /> تصدير إلى Excel
-      </ExportButton>
-      <ExportButton onClick={exportToPdf}>
-        <FontAwesomeIcon icon={faFilePdf} /> تصدير إلى PDF
-      </ExportButton>
+        <ExportButton onClick={exportToExcel}>
+          <FontAwesomeIcon icon={faFileExcel} /> تصدير إلى Excel
+        </ExportButton>
 
+        <ExportButton onClick={exportToPdf}>
+          <FontAwesomeIcon icon={faFilePdf} /> تصدير إلى PDF
+        </ExportButton>
+      </Actions>
       <FilterWrapper>
         <input
           type="date"
@@ -537,7 +526,7 @@ const ReusableTable = ({ apiUrl, columns, title, linkedTables = [] }) => {
       <Table>
         <thead>
           <tr>
-            <th>رقم</th>
+            <th>#</th>
             {columns.map((col, idx) => (
               <th key={idx} onClick={() => handleSort(col.field)}>
                 {col.label} {getSortIcon(col.field)}
